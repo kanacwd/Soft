@@ -1,0 +1,166 @@
+<parameter name="content">package com.aiu.scrs.controller;
+
+import com.aiu.scrs.dto.ApiResponse;
+import com.aiu.scrs.dto.department.DepartmentRequest;
+import com.aiu.scrs.dto.department.DepartmentResponse;
+import com.aiu.scrs.entity.Department;
+import com.aiu.scrs.service.DepartmentService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Department Controller - Handles department management operations
+ */
+@RestController
+@RequestMapping("/api/departments")
+@CrossOrigin(origins = "*", maxAge = 3600)
+public class DepartmentController {
+
+    @Autowired
+    private DepartmentService departmentService;
+
+    /**
+     * Get all departments
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<DepartmentResponse>>> getAllDepartments() {
+        try {
+            List<Department> departments = departmentService.getAllDepartments();
+            List<DepartmentResponse> responses = departments.stream()
+                .map(this::convertToDepartmentResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Departments retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve departments: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get department by ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<DepartmentResponse>> getDepartmentById(@PathVariable Long id) {
+        try {
+            return departmentService.getDepartmentById(id)
+                .map(department -> ResponseEntity.ok(ApiResponse.success("Department retrieved successfully", convertToDepartmentResponse(department))))
+                .orElse(ResponseEntity.badRequest().body(ApiResponse.error("Department not found with ID: " + id)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve department: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Create new department (Admin only)
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<DepartmentResponse>> createDepartment(@RequestBody DepartmentRequest request) {
+        try {
+            Department department = departmentService.createDepartment(request);
+            return ResponseEntity.ok(ApiResponse.success("Department created successfully", convertToDepartmentResponse(department)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to create department: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Update department (Admin only)
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<DepartmentResponse>> updateDepartment(@PathVariable Long id, 
+                                                                           @RequestBody DepartmentRequest request) {
+        try {
+            Department department = departmentService.updateDepartment(id, request);
+            return ResponseEntity.ok(ApiResponse.success("Department updated successfully", convertToDepartmentResponse(department)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to update department: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Delete department (Admin only)
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> deleteDepartment(@PathVariable Long id) {
+        try {
+            departmentService.deleteDepartment(id);
+            return ResponseEntity.ok(ApiResponse.success("Department deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to delete department: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get departments with staff count (Admin/Staff only)
+     */
+    @GetMapping("/with-staff-count")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<List<DepartmentResponse>>> getDepartmentsWithStaffCount() {
+        try {
+            List<Department> departments = departmentService.getAllDepartments();
+            List<DepartmentResponse> responses = departments.stream()
+                .map(this::convertToDepartmentResponseWithStaffCount)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Departments with staff count retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve departments: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Search departments
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<DepartmentResponse>>> searchDepartments(@RequestParam String keyword) {
+        try {
+            List<Department> departments = departmentService.searchDepartments(keyword);
+            List<DepartmentResponse> responses = departments.stream()
+                .map(this::convertToDepartmentResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Departments retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to search departments: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Convert Department entity to DepartmentResponse DTO
+     */
+    private DepartmentResponse convertToDepartmentResponse(Department department) {
+        DepartmentResponse response = new DepartmentResponse();
+        response.setId(department.getId());
+        response.setName(department.getName());
+        response.setDescription(department.getDescription());
+        response.setActive(department.getIsActive());
+        response.setCreatedAt(department.getCreatedAt() != null ? department.getCreatedAt().toString() : null);
+        response.setUpdatedAt(department.getUpdatedAt() != null ? department.getUpdatedAt().toString() : null);
+        return response;
+    }
+
+    /**
+     * Convert Department entity to DepartmentResponse DTO with staff count
+     */
+    private DepartmentResponse convertToDepartmentResponseWithStaffCount(Department department) {
+        DepartmentResponse response = convertToDepartmentResponse(department);
+        response.setStaffCount(department.getUsers() != null ? department.getUsers().size() : 0);
+        return response;
+    }
+}
+</parameter>

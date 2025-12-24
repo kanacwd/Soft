@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SCRS</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1><i class="fas fa-shield-alt"></i> SCRS Admin Panel</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="admin-name">Admin User</span>
+                    <span class="role-badge admin">ADMIN</span>
+                </div>
+                <button class="btn btn-outline" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#users" class="nav-item" data-section="users">
+                    <i class="fas fa-users"></i>
+                    <span>User Management</span>
+                </a>
+                <a href="#departments" class="nav-item" data-section="departments">
+                    <i class="fas fa-building"></i>
+                    <span>Departments</span>
+                </a>
+                <a href="#complaints" class="nav-item" data-section="complaints">
+                    <i class="fas fa-file-alt"></i>
+                    <span>All Complaints</span>
+                </a>
+                <a href="#reports" class="nav-item" data-section="reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="#settings" class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>System Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <div class="page-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h2>
+                    <p>System overview and statistics</p>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalUsers">0</h3>
+                            <p>Total Users</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalDepartments">0</h3>
+                            <p>Departments</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalComplaints">0</h3>
+                            <p>Total Complaints</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="resolvedComplaints">0</h3>
+                            <p>Resolved</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Complaints by Status</h3>
+                        <canvas id="statusChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>User Registration Trends</h3>
+                        <canvas id="userTrendChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="activity-section">
+                    <h3>Recent System Activity</h3>
+                    <div id="recentActivity" class="activity-list">
+                        <!-- Activity items will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Management Section -->
+            <section id="users-section" class="content-section">
+                <div class="page-header">
+                    <h2><i class="fas fa-users"></i> User Management</h2>
+                    <button class="btn btn-primary" onclick="showAddUserModal()">
+                        <i class="fas fa-plus"></i> Add User
+                    </button>
+                </div>
+
+                <!-- User Filters -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <label>Role:</label>
+                        <select id="roleFilter">
+                            <option value="">All Roles</option>
+                            <option value="STUDENT">Student</option>
+                            <option value="STAFF">Staff</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="userSearch" placeholder="Search users...">
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- User data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div id="usersPagination" class="pagination">
+                        <!-- Pagination will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Department Management Section -->
+            <section id="departments-section" class="content-section">
+                <div class="page-header">
+                    <h2><i class="fas fa-building"></i> Department Management</h2>
+                    <button class="btn btn-primary" onclick="showAddDepartmentModal()">
+                        <i class="fas fa-plus"></i> Add Department
+                    </button>
+                </div>
+
+                <!-- Departments Grid -->
+                <div id="departmentsGrid" class="departments-grid">
+                    <!-- Department cards will be loaded here -->
+                </div>
+            </section>
+
+            <!-- All Complaints Section -->
+            <section id="complaints-section" class="content-section">
+                <div class="page-header">
+                    <h2><i class="fas fa-file-alt"></i> All Complaints</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-outline" onclick="exportComplaints()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Complaint Filters -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="complaintStatusFilter">
+                            <option value="">All Status</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="RESOLVED">Resolved</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Department:</label>
+                        <select id="departmentFilter">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="complaintSearch" placeholder="Search complaints...">
+                    </div>
+                </div>
+
+                <!-- Complaints Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Complainer</th>
+                                <th>Department</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="complaintsTableBody">
+                            <!-- Complaint data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div id="complaintsPagination" class="pagination">
+                        <!-- Pagination will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports-section" class="content-section">
+                <div class="page-header">
+                    <h2><i class="fas fa-chart-bar"></i> System Reports</h2>
+                </div>
+
+                <!-- Report Generation -->
+                <div class="report-generation">
+                    <h3>Generate Reports</h3>
+                    <div class="report-filters">
+                        <div class="filter-group">
+                            <label>Report Type:</label>
+                            <select id="reportType">
+                                <option value="complaints">Complaints Report</option>
+                                <option value="users">User Activity Report</option>
+                                <option value="departments">Department Performance</option>
+                                <option value="system">System Overview</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Date Range:</label>
+                            <input type="date" id="reportStartDate">
+                            <span>to</span>
+                            <input type="date" id="reportEndDate">
+                        </div>
+                        <button class="btn btn-primary" onclick="generateReport()">
+                            <i class="fas fa-file-pdf"></i> Generate PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <h3>Quick Statistics</h3>
+                    <div class="stats-summary">
+                        <div class="summary-item">
+                            <h4>Average Resolution Time</h4>
+                            <span id="avgResolutionTime">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <h4>Most Active Department</h4>
+                            <span id="mostActiveDepartment">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <h4>User Satisfaction Rate</h4>
+                            <span id="satisfactionRate">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Settings Section -->
+            <section id="settings-section" class="content-section">
+                <div class="page-header">
+                    <h2><i class="fas fa-cog"></i> System Settings</h2>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>General Settings</h3>
+                        <div class="setting-item">
+                            <label>System Name:</label>
+                            <input type="text" id="systemName" value="Student Complaint Resolution System">
+                        </div>
+                        <div class="setting-item">
+                            <label>Default User Role:</label>
+                            <select id="defaultRole">
+                                <option value="STUDENT">Student</option>
+                                <option value="STAFF">Staff</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Notification Settings</h3>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="emailNotifications" checked>
+                                Enable Email Notifications
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="autoAssignment" checked>
+                                Auto-assign complaints to departments
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Security Settings</h3>
+                        <div class="setting-item">
+                            <label>Session Timeout (minutes):</label>
+                            <input type="number" id="sessionTimeout" value="30" min="5" max="120">
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="requirePasswordChange">
+                                Require password change on first login
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New User</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="newUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name:</label>
+                        <input type="text" id="newFullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="newEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="newPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role:</label>
+                        <select id="newRole" required>
+                            <option value="STUDENT">Student</option>
+                            <option value="STAFF">Staff</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Department:</label>
+                        <select id="newDepartment">
+                            <option value="">No Department</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary" onclick="addUser()">Add User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Department Modal -->
+    <div id="addDepartmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Department</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addDepartmentForm">
+                    <div class="form-group">
+                        <label>Department Name:</label>
+                        <input type="text" id="newDeptName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea id="newDeptDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Head of Department:</label>
+                        <select id="newDeptHead">
+                            <option value="">Select Head</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('addDepartmentModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary" onclick="addDepartment()">Add Department</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Details</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="userDetailsContent">
+                    <!-- User details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('userDetailsModal')">Close</button>
+                <button type="button" class="btn btn-primary" onclick="editUser()">Edit User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/api.js"></script>
+    <script src="../../js/admin.js"></script>
+</body>
+</html>
+

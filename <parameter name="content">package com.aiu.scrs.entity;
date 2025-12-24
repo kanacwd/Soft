@@ -1,0 +1,9 @@
+/**
+ * Complaint Type Enum - Defines different types of complaints
+ */
+public enum ComplaintType {
+    ACADEMIC,    // Academic related complaints
+    FACILITY     // Facility related complaints
+}
+</parameter>
+<parameter name="path">/Users/mac/Desktop/soft/backend/src/main/java/com/aiu/scrs/entity/ComplaintType.java</parameter>

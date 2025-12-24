@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Complaints - SCRS Staff</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>SCRS - Staff Portal</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="#staff-dashboard" class="nav-link">Dashboard</a>
+            <a href="#manage-complaints" class="nav-link active">Manage Complaints</a>
+            <a href="#profile" class="nav-link">Profile</a>
+            <button class="btn btn-outline" onclick="auth.logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Manage Complaints</h1>
+                    <p>Review and manage student complaints</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="staff.exportComplaints()">
+                        <i class="icon-download"></i>
+                        Export
+                    </button>
+                    <button class="btn btn-primary" onclick="staff.generateReport()">
+                        <i class="icon-file-text"></i>
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="section">
+                <div class="filters-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search complaints..." class="search-input">
+                        <button class="search-btn">
+                            <i class="icon-search"></i>
+                        </button>
+                    </div>
+
+                    <div class="filter-controls">
+                        <select id="statusFilter" class="filter-control">
+                            <option value="">All Statuses</option>
+                            <option value="SUBMITTED">Submitted</option>
+                            <option value="IN_REVIEW">In Review</option>
+                            <option value="ASSIGNED">Assigned</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="PENDING_USER_INFO">Pending User Info</option>
+                            <option value="RESOLVED">Resolved</option>
+                            <option value="CLOSED">Closed</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+
+                        <select id="priorityFilter" class="filter-control">
+                            <option value="">All Priorities</option>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="URGENT">Urgent</option>
+                        </select>
+
+                        <select id="departmentFilter" class="filter-control">
+                            <option value="">All Departments</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+
+                        <select id="typeFilter" class="filter-control">
+                            <option value="">All Types</option>
+                            <option value="INFRASTRUCTURE">Infrastructure</option>
+                            <option value="ACADEMIC">Academic</option>
+                            <option value="ADMINISTRATIVE">Administrative</option>
+                            <option value="FACILITIES">Facilities</option>
+                            <option value="SAFETY">Safety</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+
+                        <select id="dateFilter" class="filter-control">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+
+                        <select id="sortBy" class="filter-control">
+                            <option value="createdAt,desc">Newest First</option>
+                            <option value="createdAt,asc">Oldest First</option>
+                            <option value="priority,desc">High Priority First</option>
+                            <option value="dueDate,asc">Due Date</option>
+                            <option value="status,asc">Status</option>
+                        </select>
+
+                        <button class="btn btn-outline" onclick="staff.clearFilters()">
+                            <i class="icon-x"></i>
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="section">
+                <div class="bulk-actions">
+                    <div class="bulk-select">
+                        <label>
+                            <input type="checkbox" id="selectAll" onchange="staff.toggleSelectAll()">
+                            Select All
+                        </label>
+                    </div>
+                    <div class="bulk-buttons" style="display: none;">
+                        <button class="btn btn-sm btn-outline" onclick="staff.bulkStatusUpdate()">
+                            <i class="icon-edit"></i>
+                            Update Status
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="staff.bulkAssign()">
+                            <i class="icon-user"></i>
+                            Assign
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="staff.bulkDelete()">
+                            <i class="icon-trash"></i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaints Table -->
+            <div class="section">
+                <div class="table-container">
+                    <table class="complaints-table" id="complaintsTable">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-col">
+                                    <input type="checkbox" id="tableSelectAll" onchange="staff.toggleTableSelectAll()">
+                                </th>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Student</th>
+                                <th>Department</th>
+                                <th>Type</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="complaintsTableBody">
+                            <tr>
+                                <td colspan="11" class="loading-row">
+                                    <div class="loading-state">
+                                        <div class="loading-spinner"></div>
+                                        <p>Loading complaints...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container" id="paginationContainer" style="display: none;">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Showing 0-0 of 0 complaints</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn btn-outline btn-sm" id="prevPageBtn" onclick="staff.changePage(-1)">
+                            <i class="icon-chevron-left"></i>
+                            Previous
+                        </button>
+                        <div class="page-numbers" id="pageNumbers">
+                            <!-- Page numbers will be inserted here -->
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="nextPageBtn" onclick="staff.changePage(1)">
+                            Next
+                            <i class="icon-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Complaint Detail Modal -->
+    <div class="modal" id="complaintDetailModal" style="display: none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>Complaint Details</h3>
+                <button class="modal-close" onclick="staff.closeModal('complaintDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="complaintDetailContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="staff.closeModal('complaintDetailModal')">Close</button>
+                <button class="btn btn-primary" onclick="staff.showStatusUpdateModal()">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Update Modal -->
+    <div class="modal" id="statusUpdateModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Complaint Status</h3>
+                <button class="modal-close" onclick="staff.closeModal('statusUpdateModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="statusUpdateForm">
+                    <input type="hidden" id="complaintId" name="complaintId">
+                    
+                    <div class="form-group">
+                        <label for="newStatus">New Status *</label>
+                        <select id="newStatus" name="newStatus" required>
+                            <option value="">Select new status</option>
+                            <option value="IN_REVIEW">In Review</option>
+                            <option value="ASSIGNED">Assigned</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="PENDING_USER_INFO">Pending User Info</option>
+                            <option value="RESOLVED">Resolved</option>
+                            <option value="CLOSED">Closed</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="updateComment">Comment *</label>
+                        <textarea id="updateComment" name="comment" rows="4" required
+                                placeholder="Add a comment about this status update..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="estimatedResolution">Estimated Resolution Date</label>
+                        <input type="date" id="estimatedResolution" name="estimatedResolution">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyStudent" name="notifyStudent" checked>
+                            Notify student of status update
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="staff.closeModal('statusUpdateModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="staff.submitStatusUpdate()">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Status Update Modal -->
+    <div class="modal" id="bulkStatusUpdateModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Bulk Status Update</h3>
+                <button class="modal-close" onclick="staff.closeModal('bulkStatusUpdateModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>You are updating status for <span id="selectedComplaintsCount">0</span> complaints.</p>
+                
+                <form id="bulkStatusUpdateForm">
+                    <div class="form-group">
+                        <label for="bulkNewStatus">New Status *</label>
+                        <select id="bulkNewStatus" name="newStatus" required>
+                            <option value="">Select new status</option>
+                            <option value="IN_REVIEW">In Review</option>
+                            <option value="ASSIGNED">Assigned</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="PENDING_USER_INFO">Pending User Info</option>
+                            <option value="RESOLVED">Resolved</option>
+                            <option value="CLOSED">Closed</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bulkUpdateComment">Comment</label>
+                        <textarea id="bulkUpdateComment" name="comment" rows="3"
+                                placeholder="Add a comment about this bulk update..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="bulkNotifyStudents" name="notifyStudents" checked>
+                            Notify all students of status update
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="staff.closeModal('bulkStatusUpdateModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="staff.submitBulkStatusUpdate()">Update All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Modal -->
+    <div class="modal" id="assignmentModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assign Complaints</h3>
+                <button class="modal-close" onclick="staff.closeModal('assignmentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="assignmentForm">
+                    <div class="form-group">
+                        <label for="assignedTo">Assign To *</label>
+                        <select id="assignedTo" name="assignedTo" required>
+                            <option value="">Select staff member</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="assignmentComment">Assignment Comment</label>
+                        <textarea id="assignmentComment" name="comment" rows="3"
+                                placeholder="Add a comment about this assignment..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="staff.closeModal('assignmentModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="staff.submitAssignment()">Assign</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Results Summary -->
+    <div class="section" id="filterSummary" style="display: none;">
+        <div class="filter-summary">
+            <h4>Active Filters:</h4>
+            <div class="filter-tags" id="filterTags">
+                <!-- Active filter tags will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="../../js/api.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/staff.js"></script>
+    
+    <script>
+        // Initialize complaint management
+        document.addEventListener('DOMContentLoaded', function() {
+            staff.initComplaintManagement();
+        });
+    </script>
+</body>
+</html>

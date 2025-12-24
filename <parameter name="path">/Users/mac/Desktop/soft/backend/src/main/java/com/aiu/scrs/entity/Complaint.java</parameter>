@@ -1,0 +1,259 @@
+<parameter name="content">package com.aiu.scrs.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Complaint Entity - Main complaint tracking system
+ * Supports both Academic and Facility complaint types
+ */
+@Entity
+@Table(name = "complaints")
+public class Complaint {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @NotBlank
+    @Size(max = 200)
+    @Column(nullable = false)
+    private String title;
+    
+    @NotBlank
+    @Size(max = 2000)
+    @Column(nullable = false, length = 2000)
+    private String description;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ComplaintType type; // ACADEMIC, FACILITY
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ComplaintStatus status = ComplaintStatus.PENDING;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to")
+    private User assignedTo;
+    
+    @Column(name = "vote_count", nullable = false)
+    private Integer voteCount = 0;
+    
+    @Column(name = "is_public", nullable = false)
+    private Boolean isPublic = true;
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at", nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ComplaintVote> votes = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ComplaintStatusHistory> statusHistory = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ComplaintComment> comments = new ArrayList<>();
+    
+    // Constructors
+    public Complaint() {}
+    
+    public Complaint(String title, String description, ComplaintType type, User student, Department department) {
+        this.title = title;
+        this.description = description;
+        this.type = type;
+        this.student = student;
+        this.department = department;
+    }
+    
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    
+    public ComplaintType getType() {
+        return type;
+    }
+    
+    public void setType(ComplaintType type) {
+        this.type = type;
+    }
+    
+    public ComplaintStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(ComplaintStatus status) {
+        this.status = status;
+    }
+    
+    public User getStudent() {
+        return student;
+    }
+    
+    public void setStudent(User student) {
+        this.student = student;
+    }
+    
+    public Department getDepartment() {
+        return department;
+    }
+    
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+    
+    public User getAssignedTo() {
+        return assignedTo;
+    }
+    
+    public void setAssignedTo(User assignedTo) {
+        this.assignedTo = assignedTo;
+    }
+    
+    public Integer getVoteCount() {
+        return voteCount;
+    }
+    
+    public void setVoteCount(Integer voteCount) {
+        this.voteCount = voteCount;
+    }
+    
+    public Boolean getIsPublic() {
+        return isPublic;
+    }
+    
+    public void setIsPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
+    public List<ComplaintVote> getVotes() {
+        return votes;
+    }
+    
+    public void setVotes(List<ComplaintVote> votes) {
+        this.votes = votes;
+    }
+    
+    public List<ComplaintStatusHistory> getStatusHistory() {
+        return statusHistory;
+    }
+    
+    public void setStatusHistory(List<ComplaintStatusHistory> statusHistory) {
+        this.statusHistory = statusHistory;
+    }
+    
+    public List<ComplaintComment> getComments() {
+        return comments;
+    }
+    
+    public void setComments(List<ComplaintComment> comments) {
+        this.comments = comments;
+    }
+    
+    // Utility methods
+    public void addVote(ComplaintVote vote) {
+        votes.add(vote);
+        vote.setComplaint(this);
+        this.voteCount = votes.size();
+    }
+    
+    public void removeVote(ComplaintVote vote) {
+        votes.remove(vote);
+        vote.setComplaint(null);
+        this.voteCount = votes.size();
+    }
+    
+    public void addStatusHistory(ComplaintStatusHistory history) {
+        statusHistory.add(history);
+        history.setComplaint(this);
+    }
+    
+    public void addComment(ComplaintComment comment) {
+        comments.add(comment);
+        comment.setComplaint(this);
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Complaint complaint = (Complaint) o;
+        return Objects.equals(id, complaint.id);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+    
+    @Override
+    public String toString() {
+        return "Complaint{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", type=" + type +
+                ", status=" + status +
+                ", voteCount=" + voteCount +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+}
+</parameter>

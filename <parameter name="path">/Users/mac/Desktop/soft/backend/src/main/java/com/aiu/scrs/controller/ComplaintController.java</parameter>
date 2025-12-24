@@ -1,0 +1,291 @@
+<parameter name="content">package com.aiu.scrs.controller;
+
+import com.aiu.scrs.dto.ApiResponse;
+import com.aiu.scrs.dto.complaint.ComplaintRequest;
+import com.aiu.scrs.dto.complaint.ComplaintResponse;
+import com.aiu.scrs.entity.Complaint;
+import com.aiu.scrs.entity.ComplaintStatus;
+import com.aiu.scrs.entity.ComplaintType;
+import com.aiu.scrs.service.ComplaintService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Complaint Controller - Handles complaint management operations
+ */
+@RestController
+@RequestMapping("/api/complaints")
+@CrossOrigin(origins = "*", maxAge = 3600)
+public class ComplaintController {
+
+    @Autowired
+    private ComplaintService complaintService;
+
+    /**
+     * Get all complaints (Admin/Staff only)
+     */
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> getAllComplaints() {
+        try {
+            List<Complaint> complaints = complaintService.getAllComplaints();
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get complaint by ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ComplaintResponse>> getComplaintById(@PathVariable Long id) {
+        try {
+            return complaintService.getComplaintById(id)
+                .map(complaint -> ResponseEntity.ok(ApiResponse.success("Complaint retrieved successfully", convertToComplaintResponse(complaint))))
+                .orElse(ResponseEntity.badRequest().body(ApiResponse.error("Complaint not found with ID: " + id)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve complaint: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get complaints by student (Student's own complaints)
+     */
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> getMyComplaints() {
+        try {
+            List<Complaint> complaints = complaintService.getComplaintsByCurrentUser();
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("My complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get complaints by status
+     */
+    @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> getComplaintsByStatus(@PathVariable ComplaintStatus status) {
+        try {
+            List<Complaint> complaints = complaintService.getComplaintsByStatus(status);
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get complaints by type
+     */
+    @GetMapping("/type/{type}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> getComplaintsByType(@PathVariable ComplaintType type) {
+        try {
+            List<Complaint> complaints = complaintService.getComplaintsByType(type);
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get public complaints (no authentication required)
+     */
+    @GetMapping("/public")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> getPublicComplaints() {
+        try {
+            List<Complaint> complaints = complaintService.getPublicComplaints();
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Public complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get top voted complaints
+     */
+    @GetMapping("/top-voted")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> getTopVotedComplaints() {
+        try {
+            List<Complaint> complaints = complaintService.getTopVotedComplaints();
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Top voted complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Create new complaint (Student only)
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<ComplaintResponse>> createComplaint(@RequestBody ComplaintRequest request) {
+        try {
+            Complaint complaint = complaintService.createComplaint(request);
+            return ResponseEntity.ok(ApiResponse.success("Complaint created successfully", convertToComplaintResponse(complaint)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to create complaint: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Update complaint status (Staff/Admin only)
+     */
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<ComplaintResponse>> updateComplaintStatus(@PathVariable Long id, 
+                                                                               @RequestParam ComplaintStatus status) {
+        try {
+            Complaint complaint = complaintService.updateComplaintStatus(id, status);
+            return ResponseEntity.ok(ApiResponse.success("Complaint status updated successfully", convertToComplaintResponse(complaint)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to update complaint status: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Assign complaint to staff member (Admin only)
+     */
+    @PutMapping("/{id}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ComplaintResponse>> assignComplaint(@PathVariable Long id, 
+                                                                         @RequestParam Long staffId) {
+        try {
+            Complaint complaint = complaintService.assignComplaint(id, staffId);
+            return ResponseEntity.ok(ApiResponse.success("Complaint assigned successfully", convertToComplaintResponse(complaint)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to assign complaint: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Delete complaint (Admin only)
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> deleteComplaint(@PathVariable Long id) {
+        try {
+            complaintService.deleteComplaint(id);
+            return ResponseEntity.ok(ApiResponse.success("Complaint deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to delete complaint: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get assigned complaints for current staff
+     */
+    @GetMapping("/assigned")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> getAssignedComplaints() {
+        try {
+            List<Complaint> complaints = complaintService.getAssignedComplaints();
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Assigned complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve assigned complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Search complaints
+     */
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<List<ComplaintResponse>>> searchComplaints(@RequestParam String keyword) {
+        try {
+            List<Complaint> complaints = complaintService.searchComplaints(keyword);
+            List<ComplaintResponse> responses = complaints.stream()
+                .map(this::convertToComplaintResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Complaints retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to search complaints: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Convert Complaint entity to ComplaintResponse DTO
+     */
+    private ComplaintResponse convertToComplaintResponse(Complaint complaint) {
+        ComplaintResponse response = new ComplaintResponse();
+        response.setId(complaint.getId());
+        response.setTitle(complaint.getTitle());
+        response.setDescription(complaint.getDescription());
+        response.setType(complaint.getType().name());
+        response.setStatus(complaint.getStatus().name());
+        
+        if (complaint.getStudent() != null) {
+            response.setStudentUsername(complaint.getStudent().getUsername());
+            response.setStudentName(complaint.getStudent().getFirstName() != null ? 
+                complaint.getStudent().getFirstName() + " " + complaint.getStudent().getLastName() : 
+                complaint.getStudent().getUsername());
+        }
+        
+        if (complaint.getAssignedTo() != null) {
+            response.setAssignedToUsername(complaint.getAssignedTo().getUsername());
+            response.setAssignedToName(complaint.getAssignedTo().getFirstName() != null ? 
+                complaint.getAssignedTo().getFirstName() + " " + complaint.getAssignedTo().getLastName() : 
+                complaint.getAssignedTo().getUsername());
+        }
+        
+        if (complaint.getDepartment() != null) {
+            response.setDepartmentName(complaint.getDepartment().getName());
+        }
+        
+        response.setVoteCount(complaint.getVoteCount() != null ? complaint.getVoteCount() : 0);
+        response.setCreatedAt(complaint.getCreatedAt() != null ? complaint.getCreatedAt().toString() : null);
+        response.setUpdatedAt(complaint.getUpdatedAt() != null ? complaint.getUpdatedAt().toString() : null);
+        
+        return response;
+    }
+}</parameter>

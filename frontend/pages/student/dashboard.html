@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCRS - Student Dashboard</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body class="dashboard-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>SCRS</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="#dashboard" class="nav-link active">Dashboard</a>
+            <a href="#submit-complaint" class="nav-link">Submit Complaint</a>
+            <a href="#my-complaints" class="nav-link">My Complaints</a>
+            <a href="#public-complaints" class="nav-link">Browse Complaints</a>
+        </div>
+        <div class="nav-user">
+            <span class="user-name" id="userName">Student User</span>
+            <button class="btn btn-outline" id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="container">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <h1>Welcome to Your Dashboard</h1>
+                <p>Manage your complaints and track resolution progress</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="icon-complaint"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalComplaints">0</h3>
+                        <p>Total Complaints</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="icon-pending"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="pendingComplaints">0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="icon-progress"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="inProgressComplaints">0</h3>
+                        <p>In Progress</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="icon-resolved"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="resolvedComplaints">0</h3>
+                        <p>Resolved</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section">
+                <h2>Quick Actions</h2>
+                <div class="quick-actions">
+                    <button class="btn btn-primary" onclick="router.navigate('#submit-complaint')">
+                        <i class="icon-plus"></i>
+                        Submit New Complaint
+                    </button>
+                    <button class="btn btn-secondary" onclick="router.navigate('#my-complaints')">
+                        <i class="icon-list"></i>
+                        View My Complaints
+                    </button>
+                    <button class="btn btn-outline" onclick="router.navigate('#public-complaints')">
+                        <i class="icon-search"></i>
+                        Browse All Complaints
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Complaints -->
+            <div class="section">
+                <h2>Recent Complaints</h2>
+                <div class="complaints-list" id="recentComplaints">
+                    <!-- Complaints will be loaded here -->
+                </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-outline" onclick="router.navigate('#my-complaints')">
+                        View All Complaints
+                    </button>
+                </div>
+            </div>
+
+            <!-- Department Information -->
+            <div class="section">
+                <h2>Your Department</h2>
+                <div class="department-info" id="departmentInfo">
+                    <!-- Department info will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Help & Support -->
+            <div class="section">
+                <h2>Help & Support</h2>
+                <div class="help-grid">
+                    <div class="help-card">
+                        <h3>How to Submit a Complaint</h3>
+                        <p>Click "Submit New Complaint" and fill out the form with details about your issue.</p>
+                    </div>
+                    <div class="help-card">
+                        <h3>Tracking Progress</h3>
+                        <p>Check "My Complaints" to see the status and progress of your submitted complaints.</p>
+                    </div>
+                    <div class="help-card">
+                        <h3>Getting Help</h3>
+                        <p>Contact your department representative or visit the student affairs office.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="loadingModal">
+        <div class="modal-content">
+            <div class="loading-spinner"></div>
+            <p>Loading dashboard data...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/api.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/jwt.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script src="../../js/complaint.js"></script>
+
+    <script>
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!auth.isAuthenticated() || !auth.hasRole('STUDENT')) {
+                router.navigate('#login');
+                return;
+            }
+            
+            dashboard.init();
+        });
+    </script>
+</body>
+</html>

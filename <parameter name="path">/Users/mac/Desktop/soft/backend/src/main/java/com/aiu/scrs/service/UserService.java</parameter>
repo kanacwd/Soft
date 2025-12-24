@@ -1,0 +1,221 @@
+<parameter name="content">package com.aiu.scrs.service;
+
+import com.aiu.scrs.entity.User;
+import com.aiu.scrs.entity.UserRole;
+import com.aiu.scrs.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * User Service - Business logic for user operations
+ */
+@Service
+@Transactional
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    /**
+     * Get all users
+     */
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    /**
+     * Get user by ID
+     */
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    /**
+     * Get user statistics
+     */
+    public Map<String, Object> getUserStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        stats.put("totalUsers", userRepository.count());
+        stats.put("activeUsers", userRepository.countByIsActiveTrue());
+        stats.put("inactiveUsers", userRepository.countByIsActiveFalse());
+        stats.put("students", userRepository.countByRole(UserRole.STUDENT));
+        stats.put("staff", userRepository.countByRole(UserRole.STAFF));
+        stats.put("admins", userRepository.countByRole(UserRole.ADMIN));
+        
+        return stats;
+    }
+
+    /**
+     * Activate user account
+     */
+    public User activateUser(Long userId) {
+        User user = getUserById(userId);
+        user.setIsActive(true);
+        user.setUpdatedAt(LocalDateTime.now());
+        return userRepository.save(user);
+    }
+
+    /**
+     * Deactivate user account
+     */
+    public User deactivateUser(Long userId) {
+        User user = getUserById(userId);
+        user.setIsActive(false);
+        user.setUpdatedAt(LocalDateTime.now());
+        return userRepository.save(user);
+    }
+
+    /**
+     * Change user role
+     */
+    public User changeUserRole(Long userId, UserRole role) {
+        User user = getUserById(userId);
+        user.setRole(role);
+        user.setUpdatedAt(LocalDateTime.now());
+        return userRepository.save(user);
+    }
+
+    /**
+     * Get users by role
+     */
+    public List<User> getUsersByRole(UserRole role) {
+        return userRepository.findByRole(role);
+    }
+
+    /**
+     * Search users
+     */
+    public List<User> searchUsers(String keyword) {
+        return userRepository.searchUsers(keyword);
+    }
+
+    /**
+     * Get active users count
+     */
+    public long getActiveUsersCount() {
+        return userRepository.countByIsActiveTrue();
+    }
+
+    /**
+     * Get inactive users count
+     */
+    public long getInactiveUsersCount() {
+        return userRepository.countByIsActiveFalse();
+    }
+
+    /**
+     * Create new user (for admin use)
+     */
+    public User createUser(String username, String email, String password, String firstName, 
+                          String lastName, UserRole role, Boolean isActive) {
+        
+        // Check if username already exists
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Username already exists");
+        }
+        
+        // Check if email already exists
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setRole(role);
+        user.setIsActive(isActive != null ? isActive : true);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return userRepository.save(user);
+    }
+
+    /**
+     * Update user profile
+     */
+    public User updateUser(Long userId, String email, String firstName, String lastName) {
+        User user = getUserById(userId);
+        
+        // Check if email is being changed and if it already exists
+        if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        user.setEmail(email);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return userRepository.save(user);
+    }
+
+    /**
+     * Change user password
+     */
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = getUserById(userId);
+        
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    /**
+     * Reset user password (admin only)
+     */
+    public void resetPassword(Long userId, String newPassword) {
+        User user = getUserById(userId);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    /**
+     * Delete user
+     */
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
+    }
+
+    /**
+     * Check if username exists
+     */
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    /**
+     * Check if email exists
+     */
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * Find user by username
+     */
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+}
+</parameter>

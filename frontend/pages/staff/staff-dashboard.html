@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - SCRS</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <h1>SCRS</h1>
+                <span>Student Complaint Resolution System</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#/staff-dashboard" class="active">Dashboard</a></li>
+                    <li><a href="#/manage-complaints">Manage Complaints</a></li>
+                    <li><a href="#" id="logoutBtn">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <main class="main-content">
+            <div class="welcome-section">
+                <h1>Welcome back, <span id="staffName">Staff Member</span>!</h1>
+                <p>Here's an overview of your assigned complaints and recent activity.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Quick Stats -->
+                <div class="dashboard-card stat-card">
+                    <div class="card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>My Assigned</h3>
+                        <div class="stat-number" id="assignedCount">0</div>
+                        <p>Active complaints assigned to you</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card stat-card">
+                    <div class="card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>Resolved</h3>
+                        <div class="stat-number" id="resolvedCount">0</div>
+                        <p>Complaints resolved this month</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card stat-card">
+                    <div class="card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>Avg Resolution</h3>
+                        <div class="stat-number" id="avgResolutionTime">0</div>
+                        <p>Days average resolution time</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card stat-card">
+                    <div class="card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>Satisfaction</h3>
+                        <div class="stat-number" id="satisfactionRate">0%</div>
+                        <p>Student satisfaction rate</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-sections">
+                <!-- Recent Activity -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <a href="#/manage-complaints" class="view-all-link">View All</a>
+                    </div>
+                    <div class="activity-list" id="recentActivity">
+                        <!-- Activity items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Assigned Complaints -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Assigned Complaints</h2>
+                        <a href="#/manage-complaints" class="view-all-link">Manage All</a>
+                    </div>
+                    <div class="complaints-list" id="assignedComplaints">
+                        <!-- Assigned complaints will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="dashboard-section chart-section">
+                    <div class="section-header">
+                        <h2>Performance Overview</h2>
+                        <div class="chart-controls">
+                            <select id="chartPeriod">
+                                <option value="7">Last 7 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="performanceChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Quick Actions Modal -->
+    <div id="quickActionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Quick Actions</h3>
+                <span class="close" id="closeQuickActionModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="quick-actions-grid">
+                    <button class="quick-action-btn" onclick="updateComplaintStatus()">
+                        <div class="action-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                            </svg>
+                        </div>
+                        <span>Update Status</span>
+                    </button>
+
+                    <button class="quick-action-btn" onclick="addComment()">
+                        <div class="action-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                            </svg>
+                        </div>
+                        <span>Add Comment</span>
+                    </button>
+
+                    <button class="quick-action-btn" onclick="assignComplaint()">
+                        <div class="action-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 4c2.67 0 8 1.34 8 4v4H2v-4c0-2.66 5.33-4 8-4zm4-6c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 4c2.67 0 8 1.34 8 4v4H2v-4c0-2.66 5.33-4 8-4z"/>
+                            </svg>
+                        </div>
+                        <span>Reassign</span>
+                    </button>
+
+                    <button class="quick-action-btn" onclick="exportReport()">
+                        <div class="action-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                            </svg>
+                        </div>
+                        <span>Export Report</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/api.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/staff.js"></script>
+    <script>
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!auth.isAuthenticated()) {
+                window.location.href = '#/login';
+                return;
+            }
+
+            const user = auth.getCurrentUser();
+            if (user.role !== 'STAFF') {
+                window.location.href = '#/dashboard';
+                return;
+            }
+
+            // Set staff name
+            document.getElementById('staffName').textContent = user.fullName || user.username;
+
+            // Load dashboard data
+            loadDashboardData();
+            initializeEventListeners();
+        });
+
+        function initializeEventListeners() {
+            // Chart period change
+            document.getElementById('chartPeriod').addEventListener('change', loadPerformanceChart);
+            
+            // Modal handlers
+            document.getElementById('closeQuickActionModal').addEventListener('click', closeQuickActionModal);
+            window.addEventListener('click', function(event) {
+                if (event.target === document.getElementById('quickActionModal')) {
+                    closeQuickActionModal();
+                }
+            });
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Load dashboard stats
+                await loadStaffStats();
+                
+                // Load recent activity
+                await loadRecentActivity();
+                
+                // Load assigned complaints
+                await loadAssignedComplaints();
+                
+                // Load performance chart
+                await loadPerformanceChart();
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showNotification('Failed to load dashboard data', 'error');
+            }
+        }
+
+        async function loadStaffStats() {
+            try {
+                const response = await staffAPI.getDashboardStats();
+                
+                if (response.success && response.data) {
+                    const stats = response.data;
+                    
+                    document.getElementById('assignedCount').textContent = stats.assignedCount || 0;
+                    document.getElementById('resolvedCount').textContent = stats.resolvedCount || 0;
+                    document.getElementById('avgResolutionTime').textContent = stats.avgResolutionTime || 0;
+                    document.getElementById('satisfactionRate').textContent = (stats.satisfactionRate || 0) + '%';
+                }
+            } catch (error) {
+                console.error('Error loading staff stats:', error);
+            }
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const response = await staffAPI.getRecentActivity();
+                const activityList = document.getElementById('recentActivity');
+                
+                if (response.success && response.data && response.data.length > 0) {
+                    activityList.innerHTML = response.data.map(activity => createActivityItem(activity)).join('');
+                } else {
+                    activityList.innerHTML = `
+                        <div class="empty-state">
+                            <p>No recent activity</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+            }
+        }
+
+        async function loadAssignedComplaints() {
+            try {
+                const response = await staffAPI.getAssignedComplaints(0, 5);
+                const complaintsList = document.getElementById('assignedComplaints');
+                
+                if (response.success && response.data.content.length > 0) {
+                    complaintsList.innerHTML = response.data.content.map(complaint => 
+                        createAssignedComplaintItem(complaint)
+                    ).join('');
+                    
+                    // Add click handlers for complaint items
+                    document.querySelectorAll('.complaint-item').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const complaintId = this.dataset.complaintId;
+                            window.location.href = `#/manage-complaints?id=${complaintId}`;
+                        });
+                    });
+                } else {
+                    complaintsList.innerHTML = `
+                        <div class="empty-state">
+                            <p>No assigned complaints</p>
+                            <button class="btn btn-primary" onclick="window.location.href='#/manage-complaints'">
+                                Browse All Complaints
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading assigned complaints:', error);
+            }
+        }
+
+        async function loadPerformanceChart() {
+            try {
+                const period = document.getElementById('chartPeriod').value;
+                const response = await staffAPI.getPerformanceChart(period);
+                
+                if (response.success && response.data) {
+                    renderPerformanceChart(response.data);
+                }
+            } catch (error) {
+                console.error('Error loading performance chart:', error);
+                // Fallback to mock data for demonstration
+                renderPerformanceChart(generateMockChartData());
+            }
+        }
+
+        function createActivityItem(activity) {
+            const icon = getActivityIcon(activity.type);
+            const timeAgo = getTimeAgo(activity.timestamp);
+            
+            return `
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        ${icon}
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">${activity.description}</p>
+                        <span class="activity-time">${timeAgo}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createAssignedComplaintItem(complaint) {
+            return `
+                <div class="complaint-item" data-complaint-id="${complaint.id}">
+                    <div class="complaint-header">
+                        <h4>${escapeHtml(complaint.title)}</h4>
+                        <span class="status-badge status-${complaint.status.toLowerCase()}">${complaint.status}</span>
+                    </div>
+                    <div class="complaint-meta">
+                        <span class="complaint-id">#${complaint.id}</span>
+                        <span class="complaint-date">${formatDate(complaint.createdAt)}</span>
+                        <span class="priority-badge priority-${complaint.priority.toLowerCase()}">${complaint.priority}</span>
+                    </div>
+                    <div class="complaint-actions">
+                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); updateComplaintStatus(${complaint.id})">
+                            Update Status
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); addComment(${complaint.id})">
+                            Add Comment
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPerformanceChart(data) {
+            const canvas = document.getElementById('performanceChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Simple bar chart implementation
+            const barWidth = 40;
+            const barSpacing = 20;
+            const maxValue = Math.max(...data.values);
+            const chartHeight = 150;
+            const chartBottom = 180;
+            
+            data.values.forEach((value, index) => {
+                const barHeight = (value / maxValue) * chartHeight;
+                const x = (barWidth + barSpacing) * index + 20;
+                const y = chartBottom - barHeight;
+                
+                // Draw bar
+                ctx.fillStyle = '#3498db';
+                ctx.fillRect(x, y, barWidth, barHeight);
+                
+                // Draw value on top of bar
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(value, x + barWidth/2, y - 5);
+                
+                // Draw label
+                ctx.fillText(data.labels[index], x + barWidth/2, chartBottom + 15);
+            });
+            
+            // Draw title
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Complaints Resolved', canvas.width/2, 20);
+        }
+
+        function generateMockChartData() {
+            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const values = [3, 5, 2, 7, 4, 1, 6];
+            
+            return { labels, values };
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                'status_change': '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>',
+                'comment': '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>',
+                'assignment': '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 4c2.67 0 8 1.34 8 4v4H2v-4c0-2.66 5.33-4 8-4zm4-6c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 4c2.67 0 8 1.34 8 4v4H2v-4c0-2.66 5.33-4 8-4z"/></svg>',
+                'resolution': '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
+            };
+            return icons[type] || icons['status_change'];
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diffInMinutes = Math.floor((now - time) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Just now';
+            if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+            if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+            return `${Math.floor(diffInMinutes / 1440)} days ago`;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '<',
+                '>': '>',
+                '"': '"',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // Quick action functions
+        function updateComplaintStatus(complaintId) {
+            closeQuickActionModal();
+            // Navigate to complaint management with status update focus
+            if (complaintId) {
+                window.location.href = `#/manage-complaints?id=${complaintId}&action=status`;
+            } else {
+                window.location.href = '#/manage-complaints';
+            }
+        }
+
+        function addComment(complaintId) {
+            closeQuickActionModal();
+            if (complaintId) {
+                window.location.href = `#/manage-complaints?id=${complaintId}&action=comment`;
+            } else {
+                window.location.href = '#/manage-complaints';
+            }
+        }
+
+        function assignComplaint() {
+            closeQuickActionModal();
+            showNotification('Reassign functionality coming soon', 'info');
+        }
+
+        function exportReport() {
+            closeQuickActionModal();
+            showNotification('Export functionality coming soon', 'info');
+        }
+
+        function closeQuickActionModal() {
+            document.getElementById('quickActionModal').style.display = 'none';
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button class="notification-close">&times;</button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                notification.remove();
+            });
+            
+            setTimeout(() => notification.remove(), 5000);
+        }
+
+        // Global function to open quick actions modal
+        window.openQuickActions = function() {
+            document.getElementById('quickActionModal').style.display = 'flex';
+        };
+    </script>
+</body>
+</html>

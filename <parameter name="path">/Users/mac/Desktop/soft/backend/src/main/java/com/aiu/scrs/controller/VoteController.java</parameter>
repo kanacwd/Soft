@@ -1,0 +1,98 @@
+<parameter name="content">package com.aiu.scrs.controller;
+
+import com.aiu.scrs.dto.ApiResponse;
+import com.aiu.scrs.service.ComplaintVoteService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+/**
+ * Vote Controller - Handles complaint voting operations
+ */
+@RestController
+@RequestMapping("/api/votes")
+@CrossOrigin(origins = "*", maxAge = 3600)
+public class VoteController {
+
+    @Autowired
+    private ComplaintVoteService voteService;
+
+    /**
+     * Vote on a complaint (Student only)
+     */
+    @PostMapping("/{complaintId}")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> voteOnComplaint(@PathVariable Long complaintId) {
+        try {
+            Map<String, Object> result = voteService.voteOnComplaint(complaintId);
+            return ResponseEntity.ok(ApiResponse.success("Vote recorded successfully", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to record vote: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Remove vote from a complaint (Student only)
+     */
+    @DeleteMapping("/{complaintId}")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> removeVoteFromComplaint(@PathVariable Long complaintId) {
+        try {
+            Map<String, Object> result = voteService.removeVoteFromComplaint(complaintId);
+            return ResponseEntity.ok(ApiResponse.success("Vote removed successfully", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to remove vote: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Check if current user has voted on a complaint
+     */
+    @GetMapping("/{complaintId}/check")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> checkUserVote(@PathVariable Long complaintId) {
+        try {
+            boolean hasVoted = voteService.hasUserVoted(complaintId);
+            Map<String, Object> result = Map.of("hasVoted", hasVoted);
+            return ResponseEntity.ok(ApiResponse.success("Vote status retrieved successfully", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to check vote status: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get vote count for a complaint
+     */
+    @GetMapping("/{complaintId}/count")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getVoteCount(@PathVariable Long complaintId) {
+        try {
+            int voteCount = voteService.getVoteCount(complaintId);
+            Map<String, Object> result = Map.of("voteCount", voteCount);
+            return ResponseEntity.ok(ApiResponse.success("Vote count retrieved successfully", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to get vote count: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get top voted complaints (public access)
+     */
+    @GetMapping("/top-complainants")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getTopVotedComplaints() {
+        try {
+            Map<String, Object> result = voteService.getTopVotedComplaints();
+            return ResponseEntity.ok(ApiResponse.success("Top voted complaints retrieved successfully", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve top voted complaints: " + e.getMessage()));
+        }
+    }
+}
+</parameter>

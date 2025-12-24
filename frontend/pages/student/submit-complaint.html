@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Complaint - SCRS</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <h1>SCRS</h1>
+                <span>Student Complaint Resolution System</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#/dashboard">Dashboard</a></li>
+                    <li><a href="#/my-complaints">My Complaints</a></li>
+                    <li><a href="#/public-complaints">Public Complaints</a></li>
+                    <li><a href="#/submit-complaint" class="active">Submit Complaint</a></li>
+                    <li><a href="#" id="logoutBtn">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Submit New Complaint</h1>
+                <p>Please provide detailed information about your complaint. This will help us process it more effectively.</p>
+            </div>
+
+            <div class="form-container">
+                <form id="complaintForm" class="complaint-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Complaint Title *</label>
+                            <input type="text" id="title" name="title" required 
+                                   placeholder="Brief description of your complaint">
+                            <div class="error-message" id="titleError"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Category *</label>
+                            <select id="category" name="category" required>
+                                <option value="">Select a category</option>
+                                <option value="ACADEMIC">Academic Issues</option>
+                                <option value="ADMINISTRATIVE">Administrative</option>
+                                <option value="INFRASTRUCTURE">Infrastructure</option>
+                                <option value="SERVICES">Services</option>
+                                <option value="HARASSMENT">Harassment/Bullying</option>
+                                <option value="DISCRIMINATION">Discrimination</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                            <div class="error-message" id="categoryError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="priority">Priority *</label>
+                            <select id="priority" name="priority" required>
+                                <option value="">Select priority level</option>
+                                <option value="LOW">Low - Can wait</option>
+                                <option value="MEDIUM">Medium - Important</option>
+                                <option value="HIGH">High - Urgent</option>
+                                <option value="CRITICAL">Critical - Very urgent</option>
+                            </select>
+                            <div class="error-message" id="priorityError"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="department">Target Department *</label>
+                            <select id="department" name="department" required>
+                                <option value="">Select a department</option>
+                            </select>
+                            <div class="error-message" id="departmentError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="isAnonymous">Anonymous Submission</label>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="isAnonymous" name="isAnonymous">
+                                <label for="isAnonymous">Submit this complaint anonymously</label>
+                            </div>
+                            <small class="form-help">Anonymous complaints cannot be tracked for updates</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Detailed Description *</label>
+                        <textarea id="description" name="description" rows="6" required 
+                                  placeholder="Please provide a detailed description of your complaint. Include relevant dates, people involved, and specific incidents."></textarea>
+                        <div class="error-message" id="descriptionError"></div>
+                        <div class="char-counter">
+                            <span id="descriptionCounter">0</span> / 2000 characters
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="suggestedResolution">Suggested Resolution</label>
+                        <textarea id="suggestedResolution" name="suggestedResolution" rows="3" 
+                                  placeholder="What resolution would you like to see? (Optional)"></textarea>
+                        <div class="error-message" id="suggestedResolutionError"></div>
+                        <div class="char-counter">
+                            <span id="suggestedResolutionCounter">0</span> / 500 characters
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="attachments">Supporting Documents</label>
+                        <div class="file-upload-area">
+                            <input type="file" id="attachments" name="attachments" multiple 
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <div class="file-upload-text">
+                                <span>Click to upload files or drag and drop</span>
+                                <small>Supported formats: PDF, DOC, DOCX, JPG, PNG (Max 5MB each)</small>
+                            </div>
+                        </div>
+                        <div id="fileList" class="file-list"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="saveDraftBtn">Save as Draft</button>
+                        <button type="submit" class="btn btn-primary">Submit Complaint</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Draft Complaints Modal -->
+            <div id="draftModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Draft Complaints</h3>
+                        <span class="close" id="closeDraftModal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="draftList" class="draft-list">
+                            <!-- Draft complaints will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Modal -->
+            <div id="successModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Success!</h3>
+                        <span class="close" id="closeSuccessModal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <p>Your complaint has been submitted successfully!</p>
+                        <p>Complaint ID: <strong id="complaintId"></strong></p>
+                        <p>You can track the status of your complaint in the "My Complaints" section.</p>
+                        <div class="modal-actions">
+                            <button class="btn btn-primary" id="viewComplaintBtn">View My Complaints</button>
+                            <button class="btn btn-secondary" id="submitAnotherBtn">Submit Another</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../js/api.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/complaint.js"></script>
+    <script>
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!auth.isAuthenticated()) {
+                window.location.href = '#/login';
+                return;
+            }
+
+            const user = auth.getCurrentUser();
+            if (user.role !== 'STUDENT') {
+                window.location.href = '#/dashboard';
+                return;
+            }
+
+            // Load departments
+            loadDepartments();
+
+            // Initialize form handlers
+            initializeFormHandlers();
+
+            // Character counters
+            initializeCharacterCounters();
+
+            // File upload handlers
+            initializeFileUpload();
+        });
+
+        async function loadDepartments() {
+            try {
+                const response = await api.get('/departments');
+                const departmentSelect = document.getElementById('department');
+                
+                if (response.success && response.data) {
+                    departmentSelect.innerHTML = '<option value="">Select a department</option>';
+                    response.data.forEach(dept => {
+                        const option = document.createElement('option');
+                        option.value = dept.id;
+                        option.textContent = dept.name;
+                        departmentSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading departments:', error);
+                showNotification('Failed to load departments', 'error');
+            }
+        }
+
+        function initializeFormHandlers() {
+            const form = document.getElementById('complaintForm');
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+
+            form.addEventListener('submit', handleFormSubmit);
+            saveDraftBtn.addEventListener('click', handleSaveDraft);
+
+            // Clear errors on input
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => clearError(input.name));
+            });
+        }
+
+        function initializeCharacterCounters() {
+            const description = document.getElementById('description');
+            const suggestedResolution = document.getElementById('suggestedResolution');
+
+            description.addEventListener('input', () => {
+                updateCharCounter('descriptionCounter', description.value.length, 2000);
+            });
+
+            suggestedResolution.addEventListener('input', () => {
+                updateCharCounter('suggestedResolutionCounter', suggestedResolution.value.length, 500);
+            });
+        }
+
+        function updateCharCounter(counterId, count, max) {
+            const counter = document.getElementById(counterId);
+            counter.textContent = count;
+            
+            if (count > max * 0.9) {
+                counter.style.color = '#e74c3c';
+            } else if (count > max * 0.8) {
+                counter.style.color = '#f39c12';
+            } else {
+                counter.style.color = '#7f8c8d';
+            }
+        }
+
+        function initializeFileUpload() {
+            const fileInput = document.getElementById('attachments');
+            const fileList = document.getElementById('fileList');
+
+            fileInput.addEventListener('change', handleFileSelect);
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            const fileList = document.getElementById('fileList');
+            
+            // Clear existing files
+            fileList.innerHTML = '';
+
+            files.forEach((file, index) => {
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification(`File ${file.name} is too large. Maximum size is 5MB.`, 'error');
+                    return;
+                }
+
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-size">${formatFileSize(file.size)}</span>
+                    <button type="button" class="btn-remove" onclick="removeFile(${index})">×</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            const fileInput = document.getElementById('attachments');
+            const dt = new DataTransfer();
+            const files = Array.from(fileInput.files);
+            
+            files.splice(index, 1);
+            files.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+            
+            handleFileSelect({ target: fileInput });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            const formData = new FormData();
+            const form = document.getElementById('complaintForm');
+            
+            // Add form fields
+            const fields = ['title', 'category', 'priority', 'department', 'description', 'suggestedResolution'];
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element.value.trim()) {
+                    formData.append(field, element.value.trim());
+                }
+            });
+
+            // Add anonymous flag
+            formData.append('isAnonymous', document.getElementById('isAnonymous').checked);
+
+            // Add files
+            const files = document.getElementById('attachments').files;
+            for (let i = 0; i < files.length; i++) {
+                formData.append('attachments', files[i]);
+            }
+
+            try {
+                showLoading(true);
+                const response = await complaintAPI.createComplaint(formData);
+                
+                if (response.success) {
+                    showSuccessModal(response.data.id);
+                    form.reset();
+                    document.getElementById('fileList').innerHTML = '';
+                } else {
+                    showNotification(response.message || 'Failed to submit complaint', 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting complaint:', error);
+                showNotification('Failed to submit complaint. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function handleSaveDraft() {
+            const draftData = {
+                title: document.getElementById('title').value.trim(),
+                category: document.getElementById('category').value,
+                priority: document.getElementById('priority').value,
+                department: document.getElementById('department').value,
+                description: document.getElementById('description').value.trim(),
+                suggestedResolution: document.getElementById('suggestedResolution').value.trim(),
+                isAnonymous: document.getElementById('isAnonymous').checked,
+                isDraft: true
+            };
+
+            try {
+                const response = await complaintAPI.createComplaint(draftData);
+                
+                if (response.success) {
+                    showNotification('Draft saved successfully', 'success');
+                } else {
+                    showNotification(response.message || 'Failed to save draft', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving draft:', error);
+                showNotification('Failed to save draft', 'error');
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = ['title', 'category', 'priority', 'department', 'description'];
+            
+            requiredFields.forEach(field => {
+                const element = document.getElementById(field);
+                const value = element.value.trim();
+                
+                if (!value) {
+                    showError(field, 'This field is required');
+                    isValid = false;
+                } else {
+                    clearError(field);
+                }
+            });
+
+            // Validate description length
+            const description = document.getElementById('description').value;
+            if (description.length > 2000) {
+                showError('description', 'Description cannot exceed 2000 characters');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showError(fieldName, message) {
+            const errorElement = document.getElementById(fieldName + 'Error');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function clearError(fieldName) {
+            const errorElement = document.getElementById(fieldName + 'Error');
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+            }
+        }
+
+        function showSuccessModal(complaintId) {
+            document.getElementById('complaintId').textContent = complaintId;
+            document.getElementById('successModal').style.display = 'flex';
+        }
+
+        function showLoading(show) {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (show) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-spinner"></span> Submitting...';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Complaint';
+            }
+        }
+
+        // Modal handlers
+        document.getElementById('closeSuccessModal').addEventListener('click', () => {
+            document.getElementById('successModal').style.display = 'none';
+        });
+
+        document.getElementById('viewComplaintBtn').addEventListener('click', () => {
+            window.location.href = '#/my-complaints';
+        });
+
+        document.getElementById('submitAnotherBtn').addEventListener('click', () => {
+            document.getElementById('successModal').style.display = 'none';
+        });
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button class="notification-close">&times;</button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                notification.remove();
+            });
+            
+            setTimeout(() => notification.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

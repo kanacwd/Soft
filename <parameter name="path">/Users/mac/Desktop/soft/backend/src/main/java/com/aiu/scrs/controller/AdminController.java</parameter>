@@ -1,0 +1,188 @@
+<parameter name="content">package com.aiu.scrs.controller;
+
+import com.aiu.scrs.dto.ApiResponse;
+import com.aiu.scrs.dto.user.UserResponse;
+import com.aiu.scrs.entity.User;
+import com.aiu.scrs.entity.UserRole;
+import com.aiu.scrs.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * Admin Controller - Handles admin-specific operations
+ */
+@RestController
+@RequestMapping("/api/admin")
+@CrossOrigin(origins = "*", maxAge = 3600)
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminController {
+
+    @Autowired
+    private UserService userService;
+
+    /**
+     * Get all users (Admin only)
+     */
+    @GetMapping("/users")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
+        try {
+            List<User> users = userService.getAllUsers();
+            List<UserResponse> responses = users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve users: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get user statistics
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getUserStats() {
+        try {
+            Map<String, Object> stats = userService.getUserStatistics();
+            return ResponseEntity.ok(ApiResponse.success("User statistics retrieved successfully", stats));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve user statistics: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Activate user account
+     */
+    @PutMapping("/users/{userId}/activate")
+    public ResponseEntity<ApiResponse<UserResponse>> activateUser(@PathVariable Long userId) {
+        try {
+            User user = userService.activateUser(userId);
+            return ResponseEntity.ok(ApiResponse.success("User activated successfully", convertToUserResponse(user)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to activate user: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Deactivate user account
+     */
+    @PutMapping("/users/{userId}/deactivate")
+    public ResponseEntity<ApiResponse<UserResponse>> deactivateUser(@PathVariable Long userId) {
+        try {
+            User user = userService.deactivateUser(userId);
+            return ResponseEntity.ok(ApiResponse.success("User deactivated successfully", convertToUserResponse(user)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to deactivate user: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Change user role
+     */
+    @PutMapping("/users/{userId}/role")
+    public ResponseEntity<ApiResponse<UserResponse>> changeUserRole(@PathVariable Long userId, 
+                                                                  @RequestParam UserRole role) {
+        try {
+            User user = userService.changeUserRole(userId, role);
+            return ResponseEntity.ok(ApiResponse.success("User role changed successfully", convertToUserResponse(user)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to change user role: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get users by role
+     */
+    @GetMapping("/users/role/{role}")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getUsersByRole(@PathVariable UserRole role) {
+        try {
+            List<User> users = userService.getUsersByRole(role);
+            List<UserResponse> responses = users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to retrieve users: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Search users
+     */
+    @GetMapping("/users/search")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> searchUsers(@RequestParam String keyword) {
+        try {
+            List<User> users = userService.searchUsers(keyword);
+            List<UserResponse> responses = users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", responses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to search users: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get active users count
+     */
+    @GetMapping("/users/active/count")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getActiveUsersCount() {
+        try {
+            long activeCount = userService.getActiveUsersCount();
+            Map<String, Object> result = Map.of("activeCount", activeCount);
+            return ResponseEntity.ok(ApiResponse.success("Active users count retrieved successfully", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to get active users count: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get inactive users count
+     */
+    @GetMapping("/users/inactive/count")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getInactiveUsersCount() {
+        try {
+            long inactiveCount = userService.getInactiveUsersCount();
+            Map<String, Object> result = Map.of("inactiveCount", inactiveCount);
+            return ResponseEntity.ok(ApiResponse.success("Inactive users count retrieved successfully", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Failed to get inactive users count: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Convert User entity to UserResponse DTO
+     */
+    private UserResponse convertToUserResponse(User user) {
+        UserResponse response = new UserResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setFullName(user.getFullName());
+        response.setRole(user.getRole().name());
+        response.setIsActive(user.getIsActive());
+        response.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
+        response.setUpdatedAt(user.getUpdatedAt() != null ? user.getUpdatedAt().toString() : null);
+        return response;
+    }
+}
+</parameter>
